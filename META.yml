@@ -1,6 +1,6 @@
 ---
 name: IO-Socket-Multicast6
-version: 0.01
+version: 0.02
 author:
   - 'Based on L<IO::Socket::Multicast> by Lincoln Stein, lstein@cshl.org.'
   - 'IO::Socket::Multicast6 by Nicholas J Humfrey, E<lt>njh@cpan.orgE<gt>.'
@@ -19,5 +19,5 @@ build_requires:
 provides:
   IO::Socket::Multicast6:
     file: lib/IO/Socket/Multicast6.pm
-    version: 0.01
+    version: 0.02
 generated_by: Module::Build version 0.26
