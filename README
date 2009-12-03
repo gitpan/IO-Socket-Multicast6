@@ -19,6 +19,7 @@ SYNOPSIS
       # Drop a multicast group
       $s->mcast_drop('FF15::0561');
 
+
       # create a new IPv4 UDP socket ready to send datagrams to port 1100
       my $s = IO::Socket::Multicast6->new(
                                     Domain=>AF_INET,
@@ -141,6 +142,10 @@ DESCRIPTION
         distinguish which group a message was addressed to by identifying
         which socket it was received on.
 
+    $success = $socket->mcast_add_source($multicast_add, $source_addr
+    [,$interface])
+        Same as mcast_add() but for Source Specific Multicast (SSM).
+
     $success = $socket->mcast_drop($multicast_address)
         This reverses the action of mcast_add(), removing the indicated
         multicast address from the list of subscribed groups.
@@ -241,8 +246,8 @@ EXAMPLE
 
      use constant GROUP => 'FF15::0561';
      use constant PORT  => '2000';
- 
-     my $sock = IO::Socket::Multicast6->new(
+     
+ my $sock = IO::Socket::Multicast6->new(
                         Proto=>'udp',
                         Domain=>AF_INET6,
                         PeerAddr=>GROUP,
@@ -272,8 +277,8 @@ EXAMPLE
                         Domain=>AF_INET6,
                         LocalAddr=>GROUP,
                         LocalPort=>PORT);
-                    
-     $sock->mcast_add(GROUP) || die "Couldn't set group: $!\n";
+                        
+ $sock->mcast_add(GROUP) || die "Couldn't set group: $!\n";
 
      while (1) {
         my $data;
@@ -286,15 +291,21 @@ EXAMPLE
     crash on versions of Linux earlier than 2.2.0 because of a kernel bug in
     the implementation of the multicast socket options.
 
+SEE ALSO
+    <http://www.ietf.org/rfc/rfc2553.txt>
+
+    perl(1), IO::Socket(3), Socket::Multicast6(3), IO::Socket::INET6(3).
+
 AUTHOR
     Based on IO::Socket::Multicast by Lincoln Stein, lstein@cshl.org.
 
     IO::Socket::Multicast6 by Nicholas J Humfrey, <njh@cpan.org>.
 
-    This module is distributed under the same terms as Perl itself.
+COPYRIGHT AND LICENSE
+    Copyright (C) 2006-2009 Nicholas J Humfrey Copyright (C) 2000-2005
+    Lincoln Stein
 
-SEE ALSO
-    <http://www.ietf.org/rfc/rfc2553.txt>
-
-    perl(1), IO::Socket(3), Socket::Multicast6(3), IO::Socket::INET6(3).
+    This library is free software; you can redistribute it and/or modify it
+    under the same terms as Perl itself, either Perl version 5.6.1 or, at
+    your option, any later version of Perl 5 you may have available.
 

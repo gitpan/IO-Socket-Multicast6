@@ -6,15 +6,14 @@ use vars qw(@ISA $VERSION);
 use IO::Socket::INET6;
 use IO::Interface::Simple;
 use Socket::Multicast6 qw/ :all /;
-use Socket6 qw/ AF_INET6 IPPROTO_IP IPPROTO_IPV6 
-                inet_pton inet_ntop pack_sockaddr_in6/;
-use Socket qw/ AF_INET sockaddr_family pack_sockaddr_in /;
+use Socket;
+use Socket6;
 use Carp 'croak';
 
 
 
 @ISA = qw(IO::Socket::INET6);
-$VERSION = '0.02';
+$VERSION = '0.03';
 
 
 # Regular expressions to match IP addresses
@@ -58,6 +57,31 @@ sub mcast_add {
 		or croak "Could not set IPV6_JOIN_GROUP socket option: $!";
 	} else {
 		croak("mcast_add failed, unsupported socket family." );
+	}
+	
+	# Success
+	return 1;
+}
+
+sub mcast_add_source {
+	my $sock = shift;
+	my $group = shift || croak 'usage: $sock->mcast_add_source($mcast_addr, $source_addr [,$interface])';
+	my $source = shift || croak 'usage: $sock->mcast_add_source($mcast_addr, $source_addr [,$interface])';
+	my $interface = shift;
+
+	if ($sock->sockdomain() == AF_INET) {
+		my $if_addr = _get_if_ipv4addr($interface);
+		my $ip_mreq = pack_ip_mreq_source(
+						inet_pton( AF_INET, $group ),
+						inet_pton( AF_INET, $source ),       
+						inet_pton( AF_INET, $if_addr ) );
+		
+		setsockopt($sock, IPPROTO_IP, IP_ADD_SOURCE_MEMBERSHIP, $ip_mreq )
+		or croak "Could not set IP_ADD_SOURCE_MEMBERSHIP socket option: $!";
+	} elsif ($sock->sockdomain() == AF_INET6) {
+		croak("mcast_add_source failed, IPv6 is currently unsupported." );
+	} else {
+		croak("mcast_add_source failed, unsupported socket family." );
 	}
 	
 	# Success
@@ -431,6 +455,12 @@ applications that listen to multiple multicast groups and distinguish
 which group a message was addressed to by identifying which socket it
 was received on.
 
+
+=item $success = $socket->mcast_add_source($multicast_add, $source_addr [,$interface])
+
+Same as mcast_add() but for Source Specific Multicast (SSM).
+
+
 =item $success = $socket->mcast_drop($multicast_address)
 
 This reverses the action of mcast_add(), removing the indicated
@@ -596,19 +626,25 @@ crash on versions of Linux earlier than 2.2.0 because of a kernel bug
 in the implementation of the multicast socket options.
 
 
+=head1 SEE ALSO
+
+L<http://www.ietf.org/rfc/rfc2553.txt>
+
+perl(1), IO::Socket(3), Socket::Multicast6(3), IO::Socket::INET6(3).
+
 =head1 AUTHOR
 
 Based on L<IO::Socket::Multicast> by Lincoln Stein, lstein@cshl.org.
 
 IO::Socket::Multicast6 by Nicholas J Humfrey, E<lt>njh@cpan.orgE<gt>.
 
-This module is distributed under the same terms as Perl itself.
+=head1 COPYRIGHT AND LICENSE
 
+Copyright (C) 2006-2009 Nicholas J Humfrey
+Copyright (C) 2000-2005 Lincoln Stein
 
-=head1 SEE ALSO
-
-L<http://www.ietf.org/rfc/rfc2553.txt>
-
-perl(1), IO::Socket(3), Socket::Multicast6(3), IO::Socket::INET6(3).
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.6.1 or,
+at your option, any later version of Perl 5 you may have available.
 
 =cut
